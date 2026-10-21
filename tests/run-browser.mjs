@@ -1,0 +1,96 @@
+import {spawn} from 'node:child_process';
+import {mkdtemp, rm, writeFile, mkdir} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join, resolve, dirname, basename} from 'node:path';
+
+const executable = process.env.CHROME_PATH || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+const origin = process.env.TEST_ORIGIN || 'http://127.0.0.1:5500';
+const profile = await mkdtemp(join(tmpdir(), 'wallet-test-'));
+const browser = spawn(executable, ['--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'], {windowsHide: true, stdio: ['ignore', 'ignore', 'pipe']});
+let socket;
+let sequence = 0;
+const pending = new Map();
+const wait = milliseconds => new Promise(resolveWait => setTimeout(resolveWait, milliseconds));
+
+try {
+  const endpoint = await new Promise((resolveEndpoint, reject) => {
+    const timeout = setTimeout(() => reject(new Error('O Chrome não iniciou em 20 segundos. Defina CHROME_PATH para o executável.')), 20000);
+    browser.on('error', reject);
+    browser.stderr.on('data', chunk => {
+      const match = chunk.toString().match(/DevTools listening on (ws:\/\/[^\s]+)/);
+      if (match) { clearTimeout(timeout); resolveEndpoint(match[1]); }
+    });
+  });
+  socket = new WebSocket(endpoint);
+  await new Promise((resolveOpen, reject) => { socket.addEventListener('open', resolveOpen, {once: true}); socket.addEventListener('error', reject, {once: true}); });
+  socket.addEventListener('message', event => {
+    const message = JSON.parse(event.data);
+    if (!message.id) return;
+    const request = pending.get(message.id);
+    if (!request) return;
+    pending.delete(message.id);
+    clearTimeout(request.timeout);
+    if (message.error) request.reject(new Error(message.error.message));
+    else request.resolve(message.result);
+  });
+  const send = (method, params = {}, sessionId) => new Promise((resolveSend, reject) => {
+    const id = ++sequence;
+    const timeout = setTimeout(() => { pending.delete(id); reject(new Error(`Tempo esgotado: ${method}`)); }, 20000);
+    pending.set(id, {resolve: resolveSend, reject, timeout});
+    socket.send(JSON.stringify({id, method, params, ...(sessionId ? {sessionId} : {})}));
+  });
+  for (const page of process.argv.slice(2).length ? process.argv.slice(2) : ['browser']) {
+    const {targetId} = await send('Target.createTarget', {url: `${origin}/tests/${page}.html?autorun=1`});
+    const {sessionId} = await send('Target.attachToTarget', {targetId, flatten: true});
+    let result;
+    for (let attempt = 0; attempt < 120; attempt += 1) {
+      const evaluation = await send('Runtime.evaluate', {expression: '({status: document.querySelector("#summary")?.dataset.status, text: document.querySelector("#summary")?.textContent, details: document.querySelector("#results")?.innerText})', returnByValue: true}, sessionId);
+      result = evaluation.result?.value;
+      if (['pass', 'fail'].includes(result?.status)) break;
+      await wait(250);
+    }
+    console.log(`${page}: ${result?.text || 'sem resultado'}\n${result?.details || ''}`);
+    if (result?.status !== 'pass') throw new Error(`Falha no teste de navegador: ${page}`);
+    await send('Target.closeTarget', {targetId});
+  }
+  if (process.env.CAPTURE_UI === '1') {
+    const {targetId} = await send('Target.createTarget', {url: `${origin}/#welcome`});
+    const {sessionId} = await send('Target.attachToTarget', {targetId, flatten: true});
+    await wait(1000);
+    await mkdir('test-results', {recursive: true});
+    for (const [name, width, height] of [['desktop', 1440, 1080], ['mobile', 390, 844]]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await wait(250);
+      const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/${name}.png`), Buffer.from(screenshot.data, 'base64'));
+    }
+    await send('Runtime.evaluate', {expression: 'document.querySelector("#explore-demo").click()'}, sessionId);
+    for (let attempt = 0; attempt < 80; attempt += 1) {
+      const state = await send('Runtime.evaluate', {expression: 'Boolean(document.querySelector("#new-income"))', returnByValue: true}, sessionId);
+      if (state.result.value) break;
+      await wait(100);
+    }
+    for (const [name, width, height] of [['dashboard-desktop', 1440, 1080], ['dashboard-mobile', 390, 844], ['dashboard-small', 320, 740]]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await wait(600);
+      const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/${name}.png`), Buffer.from(screenshot.data, 'base64'));
+    }
+    await send('Runtime.evaluate', {expression: 'location.hash = "education"'}, sessionId);
+    await send('Emulation.setDeviceMetricsOverride', {width: 1440, height: 1080, deviceScaleFactor: 1, mobile: false}, sessionId);
+    await wait(800);
+    const education = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+    await writeFile(resolve('test-results/education-desktop.png'), Buffer.from(education.data, 'base64'));
+    await send('Target.closeTarget', {targetId});
+  }
+  await send('Browser.close');
+} catch (error) {
+  console.error(error.message);
+  process.exitCode = 1;
+} finally {
+  socket?.close();
+  browser.kill();
+  await wait(600);
+  if (dirname(resolve(profile)) !== resolve(tmpdir()) || !basename(profile).startsWith('wallet-test-')) throw new Error('Diretório temporário inesperado; limpeza cancelada.');
+  await rm(profile, {recursive: true, force: true, maxRetries: 3, retryDelay: 500});
+}

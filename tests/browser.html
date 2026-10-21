@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wallet+ · Verificação do navegador</title>
+    <style>
+      :root { font-family: system-ui, sans-serif; color-scheme: dark; background: #0b1120; color: #e6edf8; }
+      body { max-width: 850px; margin: 3rem auto; padding: 0 1.25rem; line-height: 1.6; }
+      h1 { line-height: 1.2; }
+      p { color: #aebdd1; }
+      button { padding: .8rem 1.2rem; border: 0; border-radius: .7rem; font: inherit; font-weight: 700; background: #50dfb3; color: #071811; cursor: pointer; }
+      button:disabled { opacity: .55; cursor: wait; }
+      li { padding: .6rem 0; overflow-wrap: anywhere; }
+      [data-status="pass"] { color: #68e3b9; }
+      [data-status="fail"] { color: #ff8395; }
+      #summary { font-weight: 700; }
+      code { color: #c5b3ff; }
+      a { color: #9bbdff; }
+    </style>
+    <script type="module" src="./browser.js"></script>
+  </head>
+  <body>
+    <h1>Verificação real de IndexedDB e contas locais</h1>
+    <p>Esta página testa persistência, isolamento de contas, senhas derivadas e pagamentos simultâneos no próprio navegador. Ela cria contas temporárias, remove essas contas ao terminar e restaura a sessão anterior.</p>
+    <p>Execute em <code>localhost</code> ou HTTPS, com as outras abas do Wallet+ ociosas durante a verificação.</p>
+    <button id="run-tests" type="button">Executar verificações</button>
+    <p id="summary" role="status" aria-live="polite">Aguardando execução.</p>
+    <ol id="results"></ol>
+    <p><a href="../index.html">Voltar ao Wallet+</a></p>
+  </body>
+</html>

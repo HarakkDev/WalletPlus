@@ -1,0 +1,128 @@
+.transaction-filters,.report-filters { align-items:end; gap:14px; flex-wrap:wrap}
+.transaction-filters .field,.report-filters .field { flex:1 1 140px; min-width:0}
+.transaction-filters .filter-search { flex:2 1 220px}
+.transaction-totals { display:flex; flex-wrap:wrap; gap:16px 28px; margin:24px 0 14px; font-size:.85rem; color:var(--muted)}
+.transaction-totals strong { margin-left:7px}
+.transaction-description { display:flex; gap:12px; align-items:center; min-width:0}
+.transaction-description strong,.transaction-description small { display:block}
+.transaction-description strong { font-size:.875rem; font-weight:500}
+.transaction-description small { font-size:.72rem; margin-top:4px}
+.transaction-note { white-space:pre-wrap; overflow-wrap:anywhere; max-width:34ch; color:var(--muted)}
+.transaction-symbol,.recurring-icon,.goal-icon { width:40px; height:40px; display:grid; place-items:center; flex-shrink:0; border-radius:12px; background:rgba(246,136,160,.1); color:#f688a0}
+.transaction-symbol.income,.recurring-icon.income { background:rgba(53,215,170,.1); color:#35d7aa}
+.transaction-symbol svg,.recurring-icon svg,.goal-icon svg { width:19px; height:19px}
+.money-cell { font-weight:600; white-space:nowrap}
+.transaction-actions .row-actions { justify-content:flex-end}
+.form-note { font-size:.8rem; line-height:1.7; color:var(--muted); margin:16px 0}
+.form-error { color:var(--red); font-size:.85rem}
+.goal-stats,.recurring-stats,.report-stats { grid-template-columns:repeat(3,minmax(0,1fr))}
+.goals-grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr)); align-items:start; gap:22px}
+.goal-card { padding:24px}
+.goal-card-heading { display:flex; align-items:center; justify-content:space-between; gap:12px}
+.goal-icon { background:rgba(186,145,255,.13); color:#ba91ff; width:46px; height:46px}
+.goal-card h2 { font-size:1.05rem; margin:20px 0 8px; overflow-wrap:anywhere}
+.goal-card>p { font-size:.8rem}
+.goal-amount { display:flex; flex-wrap:wrap; gap:5px 10px; align-items:baseline; margin:25px 0 15px}
+.goal-amount strong { font-size:1.45rem}
+.goal-amount span { font-size:.8rem}
+.goal-card .progress { height:7px}
+.goal-card .progress>span { display:block; height:100%; background:linear-gradient(90deg,#9271ed,#c09dff); border-radius:inherit}
+.goal-progress-label { display:flex; flex-wrap:wrap; gap:5px; justify-content:space-between; font-size:.72rem; color:var(--muted); margin-top:10px}
+.goal-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:25px}
+.goal-actions .btn { font-size:.78rem; padding:9px 12px}
+.goal-actions .btn-primary { flex:1}
+.history-list { list-style:none; padding:0; margin:16px 0; max-height:50vh; overflow:auto}
+.history-list li { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:16px 0; border-bottom:1px solid var(--border); font-size:.85rem}
+.history-list li>div { min-width:0; overflow-wrap:anywhere}
+.history-list li>strong { white-space:nowrap}
+.history-list span { display:block; font-size:.75rem; margin-top:6px}
+.month-selector { max-width:210px; flex:0 0 auto}
+.recurring-section { margin-top:24px}
+.recurring-section .panel-header { display:flex; justify-content:space-between; align-items:center; gap:20px}
+.recurring-section .panel-header p { font-size:.8rem; margin:7px 0 0}
+.recurring-row { display:flex; gap:16px; align-items:center; padding:20px 0; border-top:1px solid var(--border)}
+.recurring-row:last-child { padding-bottom:0}
+.recurring-info { flex:1; min-width:0}
+.recurring-info h3 { font-size:.9rem; font-weight:500; margin:0; overflow-wrap:anywhere}
+.recurring-info p { font-size:.72rem; margin:7px 0}
+.recurring-info .badge { font-size:.65rem; padding:4px 8px; display:inline-flex}
+.recurring-icon { color:#6c9fff; background:rgba(108,159,255,.12)}
+.recurring-icon.subscription { color:#ba91ff; background:rgba(186,145,255,.12)}
+.recurring-amount { font-size:.95rem; white-space:nowrap}
+.recurring-actions { display:flex; flex-direction:column; gap:4px; align-items:center; min-width:142px}
+.recurring-actions>.btn { font-size:.73rem; padding:8px 12px; width:100%}
+.recurring-actions .row-actions { gap:1px}
+.recurring-actions .btn-icon { padding:7px; width:32px; height:32px}
+.badge-success { color:#35d7aa; background:rgba(53,215,170,.1)}
+.badge-danger { color:#f688a0; background:rgba(246,136,160,.1)}
+.is-inactive .recurring-icon,.is-inactive .recurring-info,.is-inactive .recurring-amount { opacity:.5}
+.payment-summary { display:flex; justify-content:space-between; gap:20px; align-items:center; padding:20px 0}
+.payment-summary span { font-size:1.4rem; font-weight:600; white-space:nowrap}
+.report-period { display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin:22px 0}
+.report-period p { font-size:.8rem}
+.report-stats small { display:block; font-size:.72rem; margin-top:8px}
+.report-charts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin-top:24px}
+.report-comparison { grid-column:1/-1}
+.report-charts .panel { min-width:0}
+.report-charts .panel-header p { font-size:.75rem; margin-top:7px}
+.chart-box { position:relative; height:290px; width:100%; min-width:0}
+.chart-box-donut { height:280px}
+.report-breakdown { display:flex; justify-content:space-around; flex-wrap:wrap; gap:15px; margin-top:20px; font-size:.8rem; color:var(--muted)}
+.report-breakdown strong { display:block; color:var(--text); margin-top:6px}
+.report-categories { margin-top:24px}
+.report-filters [hidden] { display:none}
+.report-filters .btn { flex:0 0 auto}
+.table-wrap { max-width:100%}
+.btn:disabled { cursor:not-allowed; opacity:.5}
+.sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0}
+
+@media(max-width:1100px) { .recurring-row { gap:12px}
+.recurring-actions { min-width:122px}
+.recurring-icon { width:35px; height:35px}
+.goal-stats .stat-card strong,.recurring-stats .stat-card strong,.report-stats .stat-card strong { font-size:1.35rem}
+}
+
+@media(max-width:720px) { .goal-stats,.recurring-stats,.report-stats { grid-template-columns:1fr}
+.transaction-filters .field,.report-filters .field { flex-basis:calc(50% - 14px)}
+.transaction-filters .filter-search { flex-basis:100%}
+.transaction-table { display:block; min-width:0!important; width:100%}
+.transaction-table thead { display:none}
+.transaction-table tbody { display:grid; gap:12px}
+.transaction-table tr { display:grid; grid-template-columns:1fr auto; padding:16px; border:1px solid var(--border); border-radius:14px; gap:12px}
+.transaction-table td { display:block; padding:0!important; border:0!important; white-space:normal}
+.transaction-table td:first-child { grid-column:1/-1}
+.transaction-table td:nth-child(2),.transaction-table td:nth-child(3) { font-size:.75rem}
+.transaction-table td:nth-child(3) { text-align:right}
+.transaction-table td:nth-child(4) { align-self:center}
+.transaction-table .transaction-actions { align-self:center}
+.transaction-table .transaction-actions .btn-icon { padding:7px; width:32px; height:32px}
+.transaction-totals { gap:10px 20px; font-size:.75rem}
+.transaction-totals>span:first-child { width:100%}
+.recurring-row { display:grid; grid-template-columns:36px 1fr auto; gap:12px 10px}
+.recurring-info p { line-height:1.6}
+.recurring-amount { font-size:.8rem; align-self:start; margin-top:4px}
+.recurring-actions { grid-column:2/-1; display:flex; flex-direction:row; justify-content:space-between; gap:8px}
+.recurring-actions>.btn { width:auto; flex:1; min-width:0}
+.recurring-actions .row-actions { flex-shrink:0}
+.recurring-section .panel-header { align-items:start; gap:12px}
+.recurring-section .panel-header .btn { font-size:.7rem; padding:8px; white-space:nowrap}
+.recurring-section .panel-header h2 { font-size:1rem}
+.recurring-section .panel-header p { font-size:.72rem}
+.report-charts { grid-template-columns:1fr; gap:18px}
+.report-comparison { grid-column:auto}
+.chart-box { height:260px}
+.payment-summary { align-items:start; flex-direction:column; gap:10px}
+.goal-card { padding:20px}
+.month-selector { max-width:100%; width:100%}
+}
+
+@media(prefers-reduced-motion:reduce) { .progress>span { transition:none}
+}
+
+.goal-stats .stat-card > span, .recurring-stats .stat-card > span, .report-stats .stat-card > span { display: block; font-size: .78rem; margin-bottom: 13px; }
+.goal-stats .stat-card > strong, .recurring-stats .stat-card > strong, .report-stats .stat-card > strong { display: block; font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -.035em; overflow-wrap: anywhere; }
+.btn-icon { width: 36px; min-width: 36px; height: 36px; padding: 8px; }
+.badge-success { color: var(--accent); }
+.badge-danger { color: var(--red); }
+.goal-icon { color: var(--purple); }
+.recurring-actions .row-actions { flex-wrap: nowrap; }

@@ -1,0 +1,77 @@
+.onboarding-page { max-width: 1040px; margin-inline: auto; }
+.onboarding-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 28px 0 18px; }
+.onboarding-step { display: flex; align-items: center; gap: 10px; color: var(--muted, #93a3bc); }
+.onboarding-step > span { display: grid; place-items: center; width: 32px; height: 32px; flex-shrink: 0; border: 1px solid var(--border, #28354a); border-radius: 50%; font-size: 12px; }
+.onboarding-step small { font-weight: 500; font-size: 11px; }
+.onboarding-step.is-current { color: var(--accent, #39d6ae); }
+.onboarding-step.is-current > span, .onboarding-step.is-complete > span { background: rgba(57, 214, 174, .12); border-color: #39d6ae; color: #39d6ae; }
+.onboarding-progress { margin-bottom: 24px; height: 4px; }
+.onboarding-progress > span { display: block; height: 100%; background: var(--accent, #39d6ae); }
+.onboarding-panel { overflow: hidden; padding: 0 !important; }
+.onboarding-step-content { padding: 32px; }
+.onboarding-intro { max-width: 720px; margin-bottom: 24px; }
+.onboarding-intro h2 { font-size: clamp(21px, 3vw, 28px); margin: 8px 0 12px; line-height: 1.35; }
+.onboarding-intro p { font-size: 13px; line-height: 1.8; }
+.suggestion-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+.suggestion-chip { border: 1px solid var(--border, #28354a); border-radius: 9px; background: var(--surface, #132238); color: inherit; padding: 9px 12px; display: inline-flex; gap: 6px; align-items: center; font: inherit; font-size: 11px; cursor: pointer; }
+.suggestion-chip:hover { border-color: #39d6ae; }
+.suggestion-chip svg { width: 14px; height: 14px; }
+.onboarding-records { display: grid; gap: 16px; }
+.onboarding-record { border: 1px solid var(--border, #28354a); border-radius: 12px; padding: 20px; }
+.record-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 18px; }
+.record-heading h3 { display: flex; align-items: center; gap: 9px; margin: 0; font-size: 14px; }
+.record-heading h3 svg { color: #39d6ae; width: 18px; }
+.goal-record .record-heading h3 svg { color: #aa8cff; }
+.check-label { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.check-label input, .bill-choice-toggle input { accent-color: #39d6ae; width: 17px; height: 17px; flex-shrink: 0; }
+.bill-checklist { display: grid; gap: 10px; margin-bottom: 20px; }
+.bill-choice { border: 1px solid var(--border, #28354a); border-radius: 11px; overflow: hidden; }
+.bill-choice.is-selected { border-color: rgba(57, 214, 174, .42); }
+.bill-choice-toggle { display: flex; align-items: center; gap: 12px; padding: 15px 18px; cursor: pointer; font-size: 13px; }
+.bill-choice-toggle span { display: inline-flex; align-items: center; gap: 10px; }
+.bill-choice-toggle svg { width: 16px; height: 16px; color: var(--muted, #93a3bc); }
+.bill-choice-fields { padding: 0 18px 18px; grid-template-columns: 2fr 1fr 1fr; }
+.onboarding-tip { display: flex; align-items: flex-start; gap: 10px; border-radius: 10px; background: rgba(82, 151, 255, .08); padding: 16px; font-size: 12px; line-height: 1.8; margin-top: 20px; }
+.onboarding-tip svg { flex-shrink: 0; width: 18px; margin-top: 3px; color: #72aaff; }
+.onboarding-note { font-size: 11px; line-height: 1.8; margin: 14px 0 0; }
+.onboarding-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 32px; border-top: 1px solid var(--border, #28354a); }
+.onboarding-footer > span { font-size: 11px; }
+.onboarding-summary > div, .onboarding-goal-summary > div { display: flex; justify-content: space-between; gap: 20px; padding: 17px 0; border-bottom: 1px solid var(--border, #28354a); font-size: 13px; }
+.onboarding-summary strong { white-space: nowrap; }
+.onboarding-summary .summary-total { border-bottom: 0; margin-top: 10px; padding: 20px; background: rgba(57, 214, 174, .07); border-radius: 10px; }
+.summary-total strong { font-size: 20px; }
+.onboarding-goals-title { display: flex; align-items: center; gap: 10px; margin-top: 28px; font-size: 15px; }
+.onboarding-goals-title svg { color: #aa8cff; width: 20px; }
+.settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.settings-section { padding: 24px; min-width: 0; }
+.settings-section h2 { display: flex; gap: 10px; align-items: center; font-size: 16px; margin: 0 0 10px; }
+.settings-section h2 svg { width: 20px; color: var(--accent, #39d6ae); }
+.settings-section > p { font-size: 12px; line-height: 1.8; }
+.settings-section form { margin-top: 20px; }
+.settings-section form > .btn { margin-top: 18px; }
+.settings-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.settings-note { margin-top: 20px; display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px; border: 1px solid rgba(242, 185, 83, .25); border-radius: 12px; background: rgba(242, 185, 83, .05); }
+.settings-note svg { flex-shrink: 0; color: #f2b953; width: 20px; }
+.settings-note p { margin: 0; font-size: 12px; line-height: 1.8; }
+.settings-categories { display: grid; gap: 8px; max-height: 300px; overflow-y: auto; margin-top: 18px; }
+.settings-category { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border, #28354a); }
+.settings-category > div:first-child { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.settings-category strong { display: block; font-size: 12px; }
+.settings-category small { font-size: 10px; }
+.settings-danger { border-color: rgba(247, 113, 139, .3) !important; }
+.settings-danger h2 svg { color: #f7718b; }
+@media (max-width: 700px) {
+  .onboarding-step { flex-direction: column; gap: 6px; text-align: center; }
+  .onboarding-step small { font-size: 9px; }
+  .onboarding-step-content { padding: 20px 16px; }
+  .onboarding-record { padding: 16px; }
+  .bill-choice-fields { grid-template-columns: 1fr; }
+  .onboarding-footer { padding: 18px 16px; flex-wrap: wrap; }
+  .onboarding-footer > span { display: none; }
+  .onboarding-footer .btn { font-size: 11px; padding-inline: 12px; }
+  .onboarding-summary .summary-total { padding: 16px 12px; }
+  .summary-total strong { font-size: 16px; }
+  .onboarding-summary > div { font-size: 12px; gap: 10px; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .settings-section { padding: 20px; }
+}
