@@ -1,5 +1,6 @@
 import { escapeHTML, icon, toast, confirmDialog } from '../components/ui.js';
 import { formatMoney, parseMoney, monthKey } from '../domain/finance.js';
+import { initializeMoneyInputs } from '../components/money-input.js';
 
 const incomeNames = ['Salário', 'Aluguel recebido', 'Aposentadoria ou pensão', 'Trabalho autônomo', 'Freelance', 'Renda extra', 'Outros'];
 const essentialNames = ['Aluguel ou prestação do imóvel', 'Energia elétrica', 'Água', 'Internet residencial', 'Plano de celular', 'Condomínio', 'Plano de saúde', 'Transporte recorrente', 'Mensalidade escolar ou faculdade', 'Seguro', 'Outras despesas fixas'];
@@ -9,7 +10,7 @@ const stepNames = ['Renda', 'Contas essenciais', 'Assinaturas', 'Metas', 'Seu re
 const amountText = amount => (Number(amount || 0) / 100).toFixed(2).replace('.', ',');
 const newId = () => crypto.randomUUID();
 const field = (label, name, value = '', extra = '') => `<label class="field"><span>${label}</span><input name="${name}" value="${escapeHTML(value)}" ${extra}></label>`;
-const moneyField = (label, name, value = '', required = true) => field(label, name, value, `inputmode="decimal" placeholder="0,00" ${required ? 'required' : ''} autocomplete="off" maxlength="18"`);
+const moneyField = (label, name, value = '', required = true) => field(label, name, value, `data-money inputmode="numeric" placeholder="0,00" ${required ? 'required' : ''} autocomplete="off" maxlength="18"`);
 
 function prepareBills(data, group, suggestions) {
   const existing = data.bills.filter(bill => bill.group === group);
@@ -136,6 +137,7 @@ export async function render(container, ctx) {
 
   function draw() {
     container.innerHTML = `<section class="onboarding-page"><header class="page-header"><div><span class="eyebrow">SEU PRIMEIRO PASSO</span><h1>${ctx.account.onboardingComplete ? 'Revisar meu planejamento' : 'Vamos começar, ' + escapeHTML(ctx.account.name.split(' ')[0]) + '?'}</h1><p class="muted">Um pouco de organização hoje. Mais tranquilidade amanhã.</p></div>${ctx.account.onboardingComplete ? '<button type="button" class="btn btn-ghost" data-cancel>Cancelar revisão</button>' : ''}</header><nav class="onboarding-steps" aria-label="Etapas do planejamento">${stepNames.map((name, index) => `<div class="onboarding-step ${index === step ? 'is-current' : ''} ${index < step ? 'is-complete' : ''}" ${index === step ? 'aria-current="step"' : ''}><span>${index < step ? icon('check') : index + 1}</span><small>${name}</small></div>`).join('')}</nav><div class="progress onboarding-progress" role="progressbar" aria-label="Progresso do planejamento" aria-valuemin="0" aria-valuemax="5" aria-valuenow="${step + 1}"><span style="width:${(step + 1) * 20}%"></span></div><form id="onboarding-form" class="panel onboarding-panel"><div class="onboarding-step-content">${step === 0 ? incomeStep() : step === 1 ? billStep('essentials') : step === 2 ? billStep('subscriptions') : step === 3 ? goalsStep() : summaryStep()}</div><footer class="onboarding-footer"><button type="button" class="btn btn-secondary" data-back ${step === 0 ? 'disabled' : ''}>${icon('arrow-left')} Voltar</button><span class="muted">Etapa ${step + 1} de 5</span><button type="submit" class="btn btn-primary" data-continue>${step === 4 ? 'Ir para meu painel' : step === 3 && !draft.goals.length ? 'Pular esta etapa' : 'Continuar'} ${icon('arrow-right')}</button></footer></form></section>`;
+    initializeMoneyInputs(container);
     container.querySelector('#onboarding-form').addEventListener('submit', async event => {
       event.preventDefault();
       capture();

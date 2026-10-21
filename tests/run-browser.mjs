@@ -39,19 +39,50 @@ try {
     pending.set(id, {resolve: resolveSend, reject, timeout});
     socket.send(JSON.stringify({id, method, params, ...(sessionId ? {sessionId} : {})}));
   });
+  if (process.env.GENERATE_PWA_ICONS === '1') {
+    const {targetId} = await send('Target.createTarget', {url: `${origin}/assets/wallet.svg`});
+    const {sessionId} = await send('Target.attachToTarget', {targetId, flatten: true});
+    await send('Page.enable', {}, sessionId);
+    await send('Page.navigate', {url: `${origin}/assets/wallet.svg`}, sessionId);
+    await wait(500);
+    await mkdir('assets/icons', {recursive: true});
+    for (const [name, size] of [['icon-192', 192], ['icon-512', 512], ['apple-touch-icon', 180]]) {
+      const result = await send('Runtime.evaluate', {expression: `(async () => { const image = new Image(); image.src = ${JSON.stringify(`${origin}/assets/wallet.svg`)}; await image.decode(); const canvas = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas'); canvas.width = ${size}; canvas.height = ${size}; const context = canvas.getContext('2d'); context.fillStyle = '#36d6b0'; context.fillRect(0, 0, ${size}, ${size}); context.drawImage(image, 0, 0, ${size}, ${size}); return canvas.toDataURL('image/png').split(',')[1]; })()`, awaitPromise: true, returnByValue: true}, sessionId);
+      if (!result.result.value) throw new Error('Não foi possível rasterizar os ícones.');
+      await writeFile(resolve(`assets/icons/${name}.png`), Buffer.from(result.result.value, 'base64'));
+    }
+    await send('Target.closeTarget', {targetId});
+  }
   for (const page of process.argv.slice(2).length ? process.argv.slice(2) : ['browser']) {
     const {targetId} = await send('Target.createTarget', {url: `${origin}/tests/${page}.html?autorun=1`});
     const {sessionId} = await send('Target.attachToTarget', {targetId, flatten: true});
     let result;
+    let offlineStarted = false;
     for (let attempt = 0; attempt < 120; attempt += 1) {
       const evaluation = await send('Runtime.evaluate', {expression: '({status: document.querySelector("#summary")?.dataset.status, text: document.querySelector("#summary")?.textContent, details: document.querySelector("#results")?.innerText})', returnByValue: true}, sessionId);
       result = evaluation.result?.value;
+      if (page === 'pwa' && result?.status === 'offline-ready' && !offlineStarted) {
+        offlineStarted = true;
+        await send('Network.enable', {}, sessionId);
+        await send('Network.emulateNetworkConditions', {offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0}, sessionId);
+        await send('Runtime.evaluate', {expression: 'window.runOfflineChecks(); undefined'}, sessionId);
+      }
       if (['pass', 'fail'].includes(result?.status)) break;
       await wait(250);
     }
     console.log(`${page}: ${result?.text || 'sem resultado'}\n${result?.details || ''}`);
     if (result?.status !== 'pass') throw new Error(`Falha no teste de navegador: ${page}`);
+    if (offlineStarted) await send('Network.emulateNetworkConditions', {offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1}, sessionId);
     await send('Target.closeTarget', {targetId});
+    if (page === 'pwa') {
+      const {targetId: appTarget} = await send('Target.createTarget', {url: `${origin}/`});
+      const {sessionId: appSession} = await send('Target.attachToTarget', {targetId: appTarget, flatten: true});
+      await wait(1000);
+      const installability = await send('Page.getInstallabilityErrors', {}, appSession);
+      if (installability.installabilityErrors.length) throw new Error(`Instalação PWA: ${JSON.stringify(installability.installabilityErrors)}`);
+      console.log('Chrome: nenhum erro de instalabilidade do PWA.');
+      await send('Target.closeTarget', {targetId: appTarget});
+    }
   }
   if (process.env.CAPTURE_UI === '1') {
     const {targetId} = await send('Target.createTarget', {url: `${origin}/#welcome`});

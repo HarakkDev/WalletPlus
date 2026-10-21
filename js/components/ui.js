@@ -1,3 +1,5 @@
+import {initializeMoneyInputs} from './money-input.js';
+
 const paths = {
   wallet: '<path d="M20 8V5H6a3 3 0 0 0 0 6h15v9H6a3 3 0 0 1-3-3V8"/><path d="M21 12h-6v5h6"/><path d="M17 14.5h.01"/>',
   home: '<path d="m3 10 9-7 9 7v10H3Z"/><path d="M9 20v-7h6v7"/>',
@@ -68,6 +70,7 @@ export function openModal({title, body, submitLabel = 'Salvar', onSubmit}) {
   dialog.setAttribute('aria-labelledby', titleId);
   dialog.innerHTML = `<div class="modal-header"><h2 id="${titleId}">${escapeHTML(title)}</h2><button type="button" class="icon-button" data-close aria-label="Fechar">${icon('close')}</button></div><form class="modal-form"><div class="modal-body">${body}</div><p class="form-error" role="alert" hidden></p><div class="modal-footer"><button type="button" class="btn btn-secondary" data-close>Cancelar</button><button type="submit" class="btn btn-primary">${escapeHTML(submitLabel)}</button></div></form>`;
   document.body.append(dialog);
+  initializeMoneyInputs(dialog);
   let saving = false;
   dialog.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => { if (!saving) dialog.close(); }));
   dialog.addEventListener('cancel', event => { if (saving) event.preventDefault(); });

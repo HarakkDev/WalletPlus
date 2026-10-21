@@ -16,7 +16,7 @@ export function openTransaction(ctx, transaction = null, initialType = 'expense'
     body: `<div class="form-grid">
       ${linked ? '<p class="full-width form-note">Este lançamento confirma uma ocorrência recorrente. Sua edição preserva o vínculo com o mês de referência.</p>' : ''}
       <label class="field">Tipo<select name="type" id="transaction-type" ${linked ? 'disabled' : ''}><option value="expense" ${selectedType === 'expense' ? 'selected' : ''}>Despesa</option><option value="income" ${selectedType === 'income' ? 'selected' : ''}>Receita</option></select></label>
-      <label class="field">Valor (R$)<input name="amount" inputmode="decimal" placeholder="0,00" required value="${transaction ? moneyValue(transaction.amount) : ''}" maxlength="16"></label>
+      <label class="field">Valor (R$)<input name="amount" data-money inputmode="numeric" placeholder="0,00" required value="${transaction ? moneyValue(transaction.amount) : ''}" maxlength="18"></label>
       <label class="field full-width">Descrição<input name="description" required maxlength="120" value="${escapeHTML(transaction?.description || '')}" placeholder="Ex.: compras da semana"></label>
       <label class="field">Data<input type="date" name="date" required max="${dateISO()}" value="${transaction?.date || dateISO()}"></label>
       <label class="field">Categoria<select name="category" id="transaction-category" required>${categoryOptions(selectedType)}</select></label>

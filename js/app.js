@@ -1,4 +1,5 @@
 import * as auth from './services/auth.js';
+import './services/pwa.js';
 import * as repository from './services/repository.js';
 import {escapeHTML, icon, toast, openModal} from './components/ui.js';
 import {destroyCharts} from './components/charts.js';

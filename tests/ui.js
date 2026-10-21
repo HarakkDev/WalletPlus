@@ -25,6 +25,9 @@ function input(selector, value) {
   element.value = value;
   element.dispatchEvent(new frame.contentWindow.Event('input', {bubbles: true}));
   element.dispatchEvent(new frame.contentWindow.Event('change', {bubbles: true}));
+  if (element.hasAttribute('data-money') && value) {
+    assert(element.inputMode === 'numeric' && /^\d{1,3}(?:\.\d{3})*,\d{2}$/.test(element.value), `Máscara monetária ausente em ${selector}: ${element.value}`);
+  }
 }
 async function submitModal(values) {
   await until(() => find('dialog[open] form'), 'modal aberto');
@@ -110,6 +113,7 @@ async function run() {
     input('#transaction-filters [name="search"]', 'Compra de teste');
     assert(documentInApp().querySelectorAll('.transaction-table tbody tr').length === 1, 'Pesquisa deve filtrar resultados.');
     find('[data-edit]').click();
+    assert(find('dialog[open] [name="amount"]').value === '100,00', 'Editar deve preservar o valor salvo com a máscara.');
     await submitModal({amount: '120,00', description: 'Compra editada'});
     data = await getData(account.id);
     assert(data.transactions.some(transaction => transaction.description === 'Compra editada' && transaction.amount === 12000), 'Edição não persistiu.');

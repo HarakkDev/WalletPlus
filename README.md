@@ -32,7 +32,38 @@ Use sempre a mesma origem durante o desenvolvimento. `localhost`, `127.0.0.1`, p
 
 Não é necessário `npm install`, `npm run build` ou servidor de aplicação. `index.html` deve estar na raiz publicada; o arquivo `.nojekyll` evita processamento Jekyll. Recursos internos usam caminhos relativos. As páginas usam navegação por hash, como `#transactions`, permitindo recarregar links no subdiretório do GitHub Pages sem regras de redirecionamento.
 
+## Instalar como aplicativo (PWA)
+
+O GitHub Pages hospeda o site. O **PWA** é a configuração que permite ao navegador instalar o Wallet+ como aplicativo e abrir suas telas sem internet após preparar o cache. Já estão incluídos `manifest.webmanifest`, `sw.js`, o registro em `js/services/pwa.js` e os ícones PNG em `assets/icons/`.
+
+Para este repositório (`HarakkDev/WalletPlus`), depois de enviar os arquivos e habilitar **Settings → Pages → Deploy from a branch → main → / (root)**, o endereço esperado é **https://harakkdev.github.io/WalletPlus/**. Esta configuração e a publicação devem ser feitas por você; nenhum commit, push ou deploy foi executado automaticamente.
+
+1. No IntelliJ, revise e faça o commit das alterações, incluindo os novos arquivos PWA e os ícones, e depois faça o push para `main`.
+2. Habilite o GitHub Pages conforme a seção anterior. Aguarde o deploy aparecer como concluído no GitHub.
+3. Abra o endereço publicado por **HTTPS**, com internet, e aguarde o primeiro carregamento terminar.
+4. **Chrome/Edge no computador:** use o ícone de instalação na barra de endereços ou a opção de instalar aplicativo no menu do navegador.
+5. **Android:** no Chrome, use **Instalar aplicativo** ou **Adicionar à tela inicial**, conforme a opção oferecida.
+6. **iPhone/iPad:** no Safari, abra **Compartilhar → Adicionar à Tela de Início**. Os nomes exatos das opções podem variar conforme o navegador e a versão.
+
+O aplicativo instalado continua usando dados locais: a instalação não cria backend nem sincroniza computadores e celulares. Exporte/importe o backup para mover informações. Contas criadas no localhost não aparecem automaticamente no endereço publicado.
+
+Após o cache inicial, cadastro/login local, transações, contas, metas e relatórios funcionam offline. Os vídeos do YouTube continuam precisando de internet; sem Google Fonts, a interface usa uma fonte de sistema. Limpar os dados do site pode remover tanto o cache quanto os dados financeiros. A instalação não substitui o backup.
+
+### Atualizações e desenvolvimento
+
+- O service worker guarda apenas uma lista explícita de arquivos da aplicação; não armazena backups, páginas de teste ou respostas externas no cache. O IndexedDB continua responsável pelos dados financeiros.
+- `start_url`, `scope` e caminhos dos ícones são relativos à pasta publicada. O cache é identificado pelo caminho da aplicação para não limpar caches de outros projetos na mesma origem.
+- Ao publicar alterações no HTML, CSS, JavaScript ou ícones, **incremente `CACHE_VERSION` em `sw.js`** (por exemplo, `v1` para `v2`). Ao adicionar/remover arquivos necessários à aplicação, atualize também `APP_FILES`.
+- A nova versão é preparada em segundo plano e espera as abas antigas fecharem. Salve o que estiver editando, feche todas as abas/janelas do Wallet+ e reabra. O sistema não força recarga durante formulários.
+- Para desenvolver sem servir arquivos antigos, use **DevTools → Application → Service Workers → Bypass for network** ou remova somente o registro do service worker. Não use **Clear site data** para isso, pois essa opção também pode apagar seu histórico financeiro.
+
+Verificação automatizada, com o servidor local ligado: `node tests/run-browser.mjs pwa`. O teste valida manifesto, dimensões dos ícones e escopo, corta a rede do navegador, recarrega a aplicação, cadastra uma receita e abre relatórios. Esse fluxo foi verificado na raiz e também no subdiretório `/WalletPlus/`.
+
+Referências: [publicação no GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site) e [instalação de PWAs — MDN](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Making_PWAs_installable).
+
 ## Funcionalidades concluídas
+
+- PWA com manifesto, ícones de instalação e cache local para uso offline após o primeiro acesso conectado.
 
 - Boas-vindas, cadastro com nome/e-mail/senha, login demonstrativo local, sessão persistente e logout.
 - Senhas derivadas com PBKDF2/SHA-256, salt aleatório de 16 bytes e 310.000 iterações via Web Crypto; nenhuma senha em texto puro é persistida.
@@ -50,6 +81,7 @@ Não é necessário `npm install`, `npm run build` ou servidor de aplicação. `
 ## Regras financeiras
 
 - Todo valor é armazenado como **centavos inteiros**. A apresentação utiliza reais no padrão brasileiro e datas DD/MM/AAAA.
+- Nos campos monetários, digite apenas números, começando pelos centavos: `3` → `0,03`, `30` → `0,30`, `300` → `3,00` e `300000` → `3.000,00`. Os separadores são automáticos em todos os formulários, inclusive ao editar valores existentes.
 - **Saldo registrado** = todas as receitas confirmadas menos todas as despesas pagas. Os cards mensais consideram somente transações com data efetiva naquele mês.
 - **Resultado previsto** = fontes de renda previstas menos contas previstas aplicáveis ao mês. Valores ainda não confirmados nunca alteram o saldo realizado.
 - Uma renda pontual só pertence ao mês da data prevista e só pode ser confirmada uma vez.
@@ -126,6 +158,8 @@ Com o servidor local ativo, abra `http://127.0.0.1:5500/tests/browser.html` e `h
 ```powershell
 node tests/run-browser.mjs browser ui
 ```
+
+Para verificar a digitação monetária, exclusão de dígitos, seleção, colagem e valores existentes, execute `node tests/run-browser.mjs money-input` com o mesmo servidor ativo.
 
 O runner usa a instalação padrão do Google Chrome no Windows. Para outro caminho, defina `CHROME_PATH`; para outra origem, defina `TEST_ORIGIN`. Ele cria um perfil temporário isolado e o remove ao concluir. As páginas de teste criam apenas contas temporárias e restauram a sessão anterior; use-as com outras abas do aplicativo ociosas. `CAPTURE_UI=1` gera capturas em `test-results/`, pasta ignorada pelo Git.
 
