@@ -18,6 +18,8 @@ const paths = {
   chevronLeft: '<path d="m15 5-7 7 7 7"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/>',
   check: '<path d="m5 12 4 4L19 6"/>',
+  undo: '<path d="m7 3-4 4 4 4M3 7h11a6 6 0 0 1 0 12h-3"/>',
+  'payment-history': '<path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/><path d="M12 7v5l3 2"/>',
   close: '<path d="m6 6 12 12M6 18 18 6"/>',
   logout: '<path d="M9 4H4v16h5m5-12 4 4-4 4M9 12h12"/>',
   search: '<circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/>',
@@ -28,6 +30,7 @@ const paths = {
   download: '<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>',
   upload: '<path d="M12 16V4m-5 5 5-5 5 5M4 16v5h16v-5"/>',
   play: '<path d="m9 5 11 7-11 7Z"/>',
+  youtube: '<rect x="2" y="5" width="20" height="14" rx="4" fill="#ff0033" stroke="none"/><path d="m10 9 6 3-6 3Z" fill="#fff" stroke="none"/>',
   sparkles: '<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1"/>',
   moon: '<path d="M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z"/>',
@@ -58,9 +61,13 @@ export function toast(message, type = 'success') {
   const notification = document.createElement('div');
   notification.className = `toast ${type === 'error' ? 'toast-error' : ''}`;
   notification.setAttribute('role', type === 'error' ? 'alert' : 'status');
-  notification.innerHTML = `${icon(type === 'error' ? 'info' : 'check')}<span>${escapeHTML(message)}</span>`;
+  notification.innerHTML = `${icon(type === 'error' ? 'info' : 'check')}<span>${escapeHTML(message)}</span><button type="button" class="toast-close" aria-label="Fechar notificação">${icon('close')}</button>`;
   document.querySelector('#notifications').append(notification);
-  setTimeout(() => notification.remove(), 6000);
+  const timeout = setTimeout(() => notification.remove(), 2500);
+  notification.addEventListener('click', () => {
+    clearTimeout(timeout);
+    notification.remove();
+  }, {once: true});
 }
 
 export function openModal({title, body, submitLabel = 'Salvar', onSubmit}) {

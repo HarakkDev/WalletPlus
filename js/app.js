@@ -11,13 +11,14 @@ import * as education from './pages/education.js';
 import * as reports from './pages/reports.js';
 import * as settings from './pages/settings.js';
 import * as onboarding from './pages/onboarding.js';
+import {educationChannels} from './data/education.js';
 
 const navigation = [
   {id: 'dashboard', label: 'Visão geral', mobile: 'Início', icon: 'dashboard'},
-  {id: 'transactions', label: 'Transações', mobile: 'Transações', icon: 'transactions'},
-  {id: 'bills', label: 'Contas Fixas', icon: 'receipt'},
+  {id: 'transactions', label: 'Extrato', mobile: 'Extrato', icon: 'transactions'},
+  {id: 'bills', label: 'Contas Fixas', mobile: 'Contas Fixas', icon: 'receipt'},
   {id: 'goals', label: 'Minhas Metas', mobile: 'Metas', icon: 'target'},
-  {id: 'education', label: 'Educação Financeira', mobile: 'Aprender', icon: 'book'},
+  {id: 'education', label: 'Educação Financeira', icon: 'book'},
   {id: 'reports', label: 'Relatórios', icon: 'chart'},
   {id: 'settings', label: 'Configurações', icon: 'settings'},
 ];
@@ -33,8 +34,9 @@ function brand(extraClass = '') {
 }
 
 function navigate(route) {
-  if (location.hash === `#${route}`) renderRoute();
-  else location.hash = route;
+  const destination = route.startsWith('#') ? route : `#${route}`;
+  if (location.hash === destination) renderRoute();
+  else location.hash = destination;
 }
 
 function setTheme() {
@@ -76,8 +78,11 @@ async function createContext() {
 function renderShell(route) {
   const active = navigation.find(item => item.id === route);
   const initials = account.name.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
-  const navHTML = navigation.map(item => `<a href="#${item.id}" class="nav-link ${item.id === route ? 'active' : ''}" ${item.id === route ? 'aria-current="page"' : ''}>${icon(item.icon)}<span>${item.label}</span></a>`).join('');
-  app.innerHTML = `<aside class="sidebar">${brand()}<p class="nav-caption">Seu espaço financeiro</p><nav class="nav-list" aria-label="Navegação principal">${navHTML}</nav><div class="sidebar-bottom"><div class="local-note">${icon('shield')}<strong>Seu controle começa aqui</strong><p>Dados salvos neste navegador.<br>Faça um backup regularmente.</p></div><button class="profile-button" data-profile><span class="avatar">${escapeHTML(initials)}</span><span class="profile-copy"><strong>${escapeHTML(account.name)}</strong><small>${account.demo ? 'Conta de demonstração' : 'Conta local'}</small></span>${icon('settings')}</button></div></aside><div class="app-layout"><header class="topbar">${brand('mobile-brand')}<div class="breadcrumb"><span>Meu espaço</span>${icon('chevronRight')}<span>${active?.label || 'Primeiros passos'}</span></div><div class="topbar-actions"><span class="local-status"><span class="status-dot"></span>Armazenamento local</span><button class="icon-button" data-theme aria-label="Alternar tema">${icon(account.theme === 'light' ? 'moon' : 'sun')}</button><span class="avatar" aria-label="${escapeHTML(account.name)}">${escapeHTML(initials)}</span></div></header>${account.demo ? '<div class="demo-banner">Você está explorando dados de exemplo. <a href="#settings">Gerenciar demonstração</a></div>' : ''}<main class="app-main" id="main-content" tabindex="-1"></main><nav class="mobile-nav" aria-label="Navegação móvel">${navigation.filter(item => item.mobile).map(item => `<a href="#${item.id}" class="${item.id === route ? 'active' : ''}" ${item.id === route ? 'aria-current="page"' : ''}>${icon(item.icon)}<span>${item.mobile}</span></a>`).join('')}<button data-more class="${['bills', 'reports', 'settings'].includes(route) ? 'active' : ''}" aria-label="Mais páginas">${icon('menu')}<span>Mais</span></button></nav></div>`;
+  const renderNavItem = item => `<a href="#${item.id}" class="nav-link ${item.id === route ? 'active' : ''}" ${item.id === route ? 'aria-current="page"' : ''}>${icon(item.icon)}<span>${item.label}</span></a>`;
+  const navHTML = navigation.map(renderNavItem).join('');
+  const extraNavigation = navigation.filter(item => !item.mobile);
+  const moreHTML = extraNavigation.map(renderNavItem).join('');
+  app.innerHTML = `<aside class="sidebar">${brand()}<p class="nav-caption">Seu espaço financeiro</p><nav class="nav-list" aria-label="Navegação principal">${navHTML}</nav><div class="sidebar-bottom"><button class="profile-button" data-profile><span class="avatar">${escapeHTML(initials)}</span><span class="profile-copy"><strong>${escapeHTML(account.name)}</strong><small>${account.demo ? 'Conta de demonstração' : 'Conta local'}</small></span>${icon('settings')}</button></div></aside><div class="app-layout"><header class="topbar">${brand('mobile-brand')}<div class="breadcrumb"><span>Meu espaço</span>${icon('chevronRight')}<span>${active?.label || 'Primeiros passos'}</span></div><div class="topbar-actions"><span class="local-status"><span class="status-dot"></span>Armazenamento local</span><button class="icon-button" data-theme aria-label="Alternar tema">${icon(account.theme === 'light' ? 'moon' : 'sun')}</button><span class="avatar" aria-label="${escapeHTML(account.name)}">${escapeHTML(initials)}</span></div></header><main class="app-main" id="main-content" tabindex="-1"></main><nav class="mobile-nav" aria-label="Navegação móvel">${navigation.filter(item => item.mobile).map(item => `<a href="#${item.id}" class="${item.id === route ? 'active' : ''}" ${item.id === route ? 'aria-current="page"' : ''}>${icon(item.icon)}<span>${item.mobile}</span></a>`).join('')}<button data-more class="${extraNavigation.some(item => item.id === route) ? 'active' : ''}" aria-label="Mais páginas">${icon('menu')}<span>Mais</span></button></nav></div>`;
   app.querySelector('[data-profile]').addEventListener('click', () => navigate('settings'));
   app.querySelector('[data-theme]').addEventListener('click', async () => {
     try {
@@ -86,7 +91,7 @@ function renderShell(route) {
     } catch (error) { toast(error.message, 'error'); }
   });
   app.querySelector('[data-more]').addEventListener('click', () => {
-    const dialog = openModal({title: 'Seu Wallet+', body: `<nav class="nav-list" aria-label="Todas as páginas">${navHTML}</nav>`, submitLabel: 'Fechar', onSubmit: async () => {}});
+    const dialog = openModal({title: 'Mais opções', body: `<nav class="nav-list" aria-label="Mais páginas">${moreHTML}</nav>`, submitLabel: 'Fechar', onSubmit: async () => {}});
     dialog.querySelectorAll('a').forEach(link => link.addEventListener('click', () => dialog.close()));
   });
   return app.querySelector('#main-content');
@@ -99,7 +104,7 @@ function authStory() {
 function renderAuth(route) {
   const register = route === 'register';
   const welcome = route === 'welcome';
-  app.innerHTML = `<div class="auth-shell ${welcome ? '' : 'compact'}">${authStory()}<main class="auth-content" id="main-content" tabindex="-1"><p class="eyebrow positive">${welcome ? 'Bem-vindo ao Wallet+' : register ? 'Um novo começo' : 'Bom ter você de volta'}</p><h2>${welcome ? 'Faça espaço para suas conquistas.' : register ? 'Crie sua conta local' : 'Entre no seu espaço'}</h2><p>${welcome ? 'Finanças mais organizadas, objetivos mais próximos. Tudo em um só lugar.' : register ? 'Um primeiro passo simples para conhecer suas finanças.' : 'Continue de onde parou e acompanhe seus planos.'}</p>${welcome ? `<div class="feature-list"><div class="feature-row"><span class="stat-icon">${icon('wallet')}</span><span><strong>Seu dinheiro, sem mistério</strong><small>Entradas, saídas e contas em dia.</small></span></div><div class="feature-row"><span class="stat-icon purple">${icon('target')}</span><span><strong>Objetivos que ganham forma</strong><small>Acompanhe cada conquista, no seu ritmo.</small></span></div><div class="feature-row"><span class="stat-icon blue">${icon('book')}</span><span><strong>Conhecimento que fica</strong><small>Conheça cinco canais de educação financeira.</small></span></div></div><div class="welcome-actions"><a class="btn btn-primary" href="#register">Começar minha jornada ${icon('arrowRight')}</a><a class="btn btn-secondary" href="#login">Já tenho uma conta local</a></div>` : `<form id="auth-form" class="auth-form">${register ? '<div class="field"><label for="auth-name">Como podemos chamar você?</label><input id="auth-name" name="name" autocomplete="given-name" required minlength="2" maxlength="80" placeholder="Seu nome"></div>' : ''}<div class="field"><label for="auth-email">E-mail</label><input id="auth-email" type="email" name="email" autocomplete="email" required maxlength="254" placeholder="voce@exemplo.com"></div><div class="field"><label for="auth-password">Senha ${register ? '(mínimo de 8 caracteres)' : ''}</label><input id="auth-password" type="password" name="password" autocomplete="${register ? 'new-password' : 'current-password'}" required minlength="${register ? 8 : 1}" maxlength="256" placeholder="Sua senha local"></div><p class="form-error" role="alert" hidden></p><button class="btn btn-primary" type="submit">${register ? 'Criar conta e começar' : 'Entrar na minha conta'}${icon('arrowRight')}</button></form><p class="auth-switch">${register ? 'Já tem uma conta?' : 'Ainda não tem uma conta?'} <a href="#${register ? 'login' : 'register'}">${register ? 'Entrar' : 'Criar conta local'}</a></p>`}<div class="auth-divider">conheça antes de começar</div><button class="btn btn-secondary" id="explore-demo">${icon('sparkles')}Explorar demonstração</button><p class="auth-disclaimer">${icon('info')} Conta local exclusivamente demonstrativa: este login não constitui autenticação segura para produção. Dados financeiros ficam neste navegador/dispositivo e podem ser perdidos ao limpar os dados do site. Não use uma senha utilizada em outros serviços.</p></main></div>`;
+  app.innerHTML = `<div class="auth-shell ${welcome ? '' : 'compact'}">${authStory()}<main class="auth-content" id="main-content" tabindex="-1"><p class="eyebrow positive">${welcome ? 'Bem-vindo ao Wallet+' : register ? 'Um novo começo' : 'Bom ter você de volta'}</p><h2>${welcome ? 'Faça espaço para suas conquistas.' : register ? 'Crie sua conta local' : 'Entre no seu espaço'}</h2><p>${welcome ? 'Finanças mais organizadas, objetivos mais próximos. Tudo em um só lugar.' : register ? 'Um primeiro passo simples para conhecer suas finanças.' : 'Continue de onde parou e acompanhe seus planos.'}</p>${welcome ? `<div class="feature-list"><div class="feature-row"><span class="stat-icon">${icon('wallet')}</span><span><strong>Seu dinheiro, sem mistério</strong><small>Entradas, saídas e contas em dia.</small></span></div><div class="feature-row"><span class="stat-icon purple">${icon('target')}</span><span><strong>Objetivos que ganham forma</strong><small>Acompanhe cada conquista, no seu ritmo.</small></span></div><div class="feature-row"><span class="stat-icon blue">${icon('book')}</span><span><strong>Conhecimento que fica</strong><small>Conheça ${educationChannels.length} canais de educação financeira.</small></span></div></div><div class="welcome-actions"><a class="btn btn-primary" href="#register">Começar minha jornada ${icon('arrowRight')}</a><a class="btn btn-secondary" href="#login">Já tenho uma conta local</a></div>` : `<form id="auth-form" class="auth-form">${register ? '<div class="field"><label for="auth-name">Como podemos chamar você?</label><input id="auth-name" name="name" autocomplete="given-name" required minlength="2" maxlength="80" placeholder="Seu nome"></div>' : ''}<div class="field"><label for="auth-email">E-mail</label><input id="auth-email" type="email" name="email" autocomplete="email" required maxlength="254" placeholder="voce@exemplo.com"></div><div class="field"><label for="auth-password">Senha ${register ? '(mínimo de 8 caracteres)' : ''}</label><input id="auth-password" type="password" name="password" autocomplete="${register ? 'new-password' : 'current-password'}" required minlength="${register ? 8 : 1}" maxlength="256" placeholder="Sua senha local"></div><p class="form-error" role="alert" hidden></p><button class="btn btn-primary" type="submit">${register ? 'Criar conta e começar' : 'Entrar na minha conta'}${icon('arrowRight')}</button></form><p class="auth-switch">${register ? 'Já tem uma conta?' : 'Ainda não tem uma conta?'} <a href="#${register ? 'login' : 'register'}">${register ? 'Entrar' : 'Criar conta local'}</a></p>`}<div class="auth-divider">conheça antes de começar</div><button class="btn btn-secondary" id="explore-demo">${icon('sparkles')}Explorar demonstração</button><p class="auth-disclaimer">${icon('info')} Conta local exclusivamente demonstrativa: este login não constitui autenticação segura para produção. Dados financeiros ficam neste navegador/dispositivo e podem ser perdidos ao limpar os dados do site. Não use uma senha utilizada em outros serviços.</p></main></div>`;
   document.title = `${register ? 'Criar conta' : welcome ? 'Bem-vindo' : 'Entrar'} · Wallet+`;
   app.querySelector('#auth-form')?.addEventListener('submit', async event => {
     event.preventDefault();
@@ -137,7 +142,8 @@ async function renderRoute() {
   try {
     currentPage?.cleanup?.();
     destroyCharts(app);
-    let route = location.hash.slice(1).split('?')[0] || (account ? 'dashboard' : 'welcome');
+    const requestedRoute = location.hash.slice(1).split('?')[0];
+    let route = requestedRoute || (account ? 'dashboard' : 'welcome');
     if (!account) {
       if (!['welcome', 'login', 'register'].includes(route)) route = 'login';
       renderAuth(route);
@@ -145,7 +151,7 @@ async function renderRoute() {
     }
     if (!account.onboardingComplete && !['onboarding', 'settings'].includes(route)) route = 'onboarding';
     if (!pages[route]) route = 'dashboard';
-    if (location.hash !== `#${route}`) history.replaceState(null, '', `#${route}`);
+    if (requestedRoute !== route) history.replaceState(null, '', `#${route}`);
     context.data = await repository.getData(account.id);
     if (version !== renderVersion) return;
     const container = renderShell(route);

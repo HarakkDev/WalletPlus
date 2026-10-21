@@ -14,8 +14,9 @@ export function createChart(canvas, type, data, options = {}) {
   const styles = getComputedStyle(document.documentElement);
   const muted = styles.getPropertyValue('--muted').trim();
   const border = styles.getPropertyValue('--border').trim();
-  const pluginDefaults = {legend: {display: type === 'doughnut', position: 'bottom', labels: {color: muted, usePointStyle: true, padding: 20}}, tooltip: {callbacks: {label: context => `${context.dataset.label || context.label}: ${Number(context.parsed?.y ?? context.parsed).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}`}}};
-  const scaleDefaults = {x: {grid: {display: false}, ticks: {color: muted}, border: {display: false}}, y: {beginAtZero: true, grid: {color: border}, ticks: {color: muted, callback: value => value >= 1000 ? `R$ ${value / 1000} mil` : `R$ ${value}`}, border: {display: false}}};
+  const fontSize = Math.max(14, Math.round(parseFloat(styles.fontSize) * 0.875));
+  const pluginDefaults = {legend: {display: type === 'doughnut', position: 'bottom', labels: {color: muted, usePointStyle: true, padding: 20, font: {size: fontSize}}}, tooltip: {bodyFont: {size: fontSize}, titleFont: {size: fontSize}, callbacks: {label: context => `${context.dataset.label || context.label}: ${Number(context.parsed?.y ?? context.parsed).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}`}}};
+  const scaleDefaults = {x: {grid: {display: false}, ticks: {color: muted, font: {size: fontSize}}, border: {display: false}}, y: {beginAtZero: true, grid: {color: border}, ticks: {color: muted, font: {size: fontSize}, callback: value => value >= 1000 ? `R$ ${value / 1000} mil` : `R$ ${value}`}, border: {display: false}}};
   const merge = (base, override) => {
     const result = {...base};
     Object.entries(override || {}).forEach(([key, value]) => { result[key] = value && typeof value === 'object' && !Array.isArray(value) ? merge(base?.[key], value) : value; });
@@ -29,7 +30,7 @@ export function createChart(canvas, type, data, options = {}) {
       maintainAspectRatio: false,
       animation: {duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 500},
       color: muted,
-      font: {family: 'Poppins, sans-serif'},
+      font: {family: 'Poppins, sans-serif', size: fontSize},
       ...(type === 'doughnut' ? {cutout: '76%', borderWidth: 0} : {}),
       ...options,
       plugins: merge(pluginDefaults, options.plugins),

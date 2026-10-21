@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v25';
 const BASE_URL = new URL('./', self.location.href);
 const CACHE_PREFIX = `wallet-plus:${BASE_URL.pathname}:`;
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`;
@@ -6,6 +6,12 @@ const APP_FILES = [
   'index.html',
   'manifest.webmanifest',
   'assets/wallet.svg',
+  'assets/channels/primo-pobre.jpg',
+  'assets/channels/nath-financas.jpg',
+  'assets/channels/me-poupe.jpg',
+  'assets/channels/economirna.jpg',
+  'assets/channels/gustavo-cerbasi.jpg',
+  'assets/channels/dinheiro-com-voce.jpg',
   'assets/icons/icon-192.png',
   'assets/icons/icon-512.png',
   'assets/icons/apple-touch-icon.png',
@@ -13,12 +19,17 @@ const APP_FILES = [
   'css/global.css',
   'css/pages/dashboard.css',
   'css/pages/finance.css',
+  'css/pages/transactions.css',
+  'css/pages/goals.css',
+  'css/pages/reports.css',
   'css/pages/onboarding.css',
   'css/pages/education.css',
   'js/app.js',
+  'js/navigation.js',
   'js/components/ui.js',
   'js/components/charts.js',
   'js/components/money-input.js',
+  'js/components/recurring-card.js',
   'js/domain/finance.js',
   'js/domain/validation.js',
   'js/services/auth.js',

@@ -87,6 +87,7 @@ try {
   if (process.env.CAPTURE_UI === '1') {
     const {targetId} = await send('Target.createTarget', {url: `${origin}/#welcome`});
     const {sessionId} = await send('Target.attachToTarget', {targetId, flatten: true});
+    await send('Emulation.setEmulatedMedia', {features: [{name: 'prefers-reduced-motion', value: 'reduce'}]}, sessionId);
     await wait(1000);
     await mkdir('test-results', {recursive: true});
     for (const [name, width, height] of [['desktop', 1440, 1080], ['mobile', 390, 844]]) {
@@ -97,7 +98,7 @@ try {
     }
     await send('Runtime.evaluate', {expression: 'document.querySelector("#explore-demo").click()'}, sessionId);
     for (let attempt = 0; attempt < 80; attempt += 1) {
-      const state = await send('Runtime.evaluate', {expression: 'Boolean(document.querySelector("#new-income"))', returnByValue: true}, sessionId);
+      const state = await send('Runtime.evaluate', {expression: 'Boolean(document.querySelector("#dashboard-period"))', returnByValue: true}, sessionId);
       if (state.result.value) break;
       await wait(100);
     }
@@ -106,12 +107,163 @@ try {
       await wait(600);
       const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
       await writeFile(resolve(`test-results/${name}.png`), Buffer.from(screenshot.data, 'base64'));
+      if (width < 760) {
+        await send('Runtime.evaluate', {expression: 'window.scrollTo(0, 500)'}, sessionId);
+        await wait(150);
+        const scrolled = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+        await writeFile(resolve(`test-results/${name}-scrolled.png`), Buffer.from(scrolled.data, 'base64'));
+        await send('Runtime.evaluate', {expression: 'window.scrollTo(0, 0)'}, sessionId);
+      }
     }
-    await send('Runtime.evaluate', {expression: 'location.hash = "education"'}, sessionId);
+    await send('Runtime.evaluate', {expression: 'location.hash = "bills"'}, sessionId);
+    await wait(500);
+    for (const [name, width, height] of [['bills-mobile-top', 390, 844], ['bills-small-top', 320, 740]]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await send('Runtime.evaluate', {expression: 'window.scrollTo(0, 0)'}, sessionId);
+      await wait(250);
+      const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/${name}.png`), Buffer.from(screenshot.data, 'base64'));
+    }
+    for (const [name, width, height] of [['bills-desktop', 1440, 1080], ['bills-mobile', 390, 844], ['bills-small', 320, 740]]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await send('Runtime.evaluate', {expression: width < 720 ? "document.querySelector('.recurring-section').scrollIntoView({block: 'start'});" : 'window.scrollTo(0, 0);'}, sessionId);
+      await wait(350);
+      const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/${name}.png`), Buffer.from(screenshot.data, 'base64'));
+    }
+    for (const width of [320, 1440]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height: width < 760 ? 844 : 1080, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await send('Runtime.evaluate', {expression: 'document.querySelector("[data-confirm][data-kind=bill]").click()'}, sessionId);
+      await wait(200);
+      const confirmation = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/bills-confirmation-${width}.png`), Buffer.from(confirmation.data, 'base64'));
+      await send('Runtime.evaluate', {expression: '(() => { document.querySelector("dialog[open] [data-close]").click(); const completed = document.querySelector("#recurring-panel-bill [data-recurring-status=completed]"); completed.open = true; completed.scrollIntoView({block: "start"}); })()'}, sessionId);
+      await wait(150);
+      const completed = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/bills-completed-${width}.png`), Buffer.from(completed.data, 'base64'));
+    }
+    await send('Emulation.setDeviceMetricsOverride', {width: 390, height: 844, deviceScaleFactor: 1, mobile: false}, sessionId);
+    await send('Runtime.evaluate', {expression: 'document.documentElement.dataset.theme = "light"; document.querySelector(".recurring-section").scrollIntoView({block: "start"})'}, sessionId);
+    await wait(250);
+    const billsLight = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+    await writeFile(resolve('test-results/bills-mobile-light.png'), Buffer.from(billsLight.data, 'base64'));
+    await send('Runtime.evaluate', {expression: 'document.documentElement.dataset.theme = "dark"'}, sessionId);
+    for (const width of [320, 390, 1440]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height: width < 760 ? 844 : 1080, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await send('Runtime.evaluate', {expression: 'document.querySelector("[data-recurring-view=income]").click(); window.scrollTo(0, 0)'}, sessionId);
+      await wait(150);
+      const income = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/bills-income-${width}.png`), Buffer.from(income.data, 'base64'));
+      await send('Runtime.evaluate', {expression: 'document.querySelector("[data-recurring-view=bill]").click()'}, sessionId);
+    }
+    await send('Runtime.evaluate', {expression: 'document.documentElement.dataset.theme = "dark"; location.hash = "goals"'}, sessionId);
+    await wait(350);
+    for (const [name, width, height] of [['goals-desktop', 1440, 1080], ['goals-wide', 1920, 1080], ['goals-mobile', 390, 844], ['goals-small', 320, 740]]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await send('Runtime.evaluate', {expression: 'window.scrollTo(0, 0)'}, sessionId);
+      await wait(250);
+      const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/${name}.png`), Buffer.from(screenshot.data, 'base64'));
+    }
+    await send('Runtime.evaluate', {expression: 'location.hash = "reports"'}, sessionId);
+    await wait(500);
+    for (const [name, width, height] of [['reports-desktop', 1440, 1080], ['reports-wide', 1920, 1080], ['reports-mobile', 390, 844], ['reports-small', 320, 740]]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await send('Runtime.evaluate', {expression: 'window.scrollTo(0, 0)'}, sessionId);
+      await wait(400);
+      const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/${name}.png`), Buffer.from(screenshot.data, 'base64'));
+    }
+    for (const [name, width, height, selector] of [['reports-charts-mobile', 390, 844, '.report-comparison'], ['reports-categories-mobile', 390, 844, '.report-categories'], ['reports-recurrence-small', 320, 740, '.report-recurrence']]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await send('Runtime.evaluate', {expression: `document.querySelector('${selector}').scrollIntoView({block: 'start'})`}, sessionId);
+      await wait(300);
+      const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/${name}.png`), Buffer.from(screenshot.data, 'base64'));
+    }
+    await send('Runtime.evaluate', {expression: 'document.querySelector(\'[name="mode"][value="custom"]\').click(); window.scrollTo(0, 0)'}, sessionId);
+    const reportsCustom = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+    await writeFile(resolve('test-results/reports-custom-small.png'), Buffer.from(reportsCustom.data, 'base64'));
+    await send('Runtime.evaluate', {expression: 'document.documentElement.dataset.theme = "light"; document.querySelector(\'[name="mode"][value="month"]\').click()'}, sessionId);
+    await send('Emulation.setDeviceMetricsOverride', {width: 390, height: 844, deviceScaleFactor: 1, mobile: false}, sessionId);
+    await wait(300);
+    const reportsLight = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+    await writeFile(resolve('test-results/reports-mobile-light.png'), Buffer.from(reportsLight.data, 'base64'));
+    const reportMetrics = [];
+    for (const width of [320, 390, 768, 1024, 1440, 1920]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height: width < 760 ? 844 : 1080, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await send('Runtime.evaluate', {expression: 'document.documentElement.dataset.theme = "dark"; window.scrollTo(0, 0)'}, sessionId);
+      for (const mode of ['month', 'year', 'custom']) {
+        await send('Runtime.evaluate', {expression: `document.querySelector('[name="mode"][value="${mode}"]').click()`}, sessionId);
+        await wait(100);
+        const metrics = await send('Runtime.evaluate', {expression: `(() => { const panel = document.querySelector('.report-filter-panel').getBoundingClientRect(); const picker = document.querySelector('#report-filters [data-mode="${mode}"]').querySelector('input, button').getBoundingClientRect(); const tabs = document.querySelector('.report-mode-switch').getBoundingClientRect(); return {panel: {width: panel.width, height: panel.height}, picker: {height: picker.height, top: picker.top}, tabs: {height: tabs.height, top: tabs.top}}; })()`, returnByValue: true}, sessionId);
+        reportMetrics.push({width, mode, ...metrics.result.value});
+        if ([320, 390, 1440].includes(width)) {
+          const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+          await writeFile(resolve(`test-results/reports-${mode}-${width}.png`), Buffer.from(screenshot.data, 'base64'));
+        }
+      }
+    }
+    await writeFile(resolve('test-results/report-filter-metrics.json'), JSON.stringify(reportMetrics, null, 2));
+    await send('Emulation.setDeviceMetricsOverride', {width: 390, height: 844, deviceScaleFactor: 1, mobile: false}, sessionId);
+    await send('Runtime.evaluate', {expression: 'document.querySelector("#report-custom-range").click()'}, sessionId);
+    await wait(150);
+    const reportDialog = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+    await writeFile(resolve('test-results/reports-range-dialog.png'), Buffer.from(reportDialog.data, 'base64'));
+    await send('Runtime.evaluate', {expression: 'document.querySelector("dialog[open] [data-close]").click()'}, sessionId);
+    await send('Runtime.evaluate', {expression: 'document.documentElement.dataset.theme = "dark"; location.hash = "education"'}, sessionId);
     await send('Emulation.setDeviceMetricsOverride', {width: 1440, height: 1080, deviceScaleFactor: 1, mobile: false}, sessionId);
     await wait(800);
     const education = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
     await writeFile(resolve('test-results/education-desktop.png'), Buffer.from(education.data, 'base64'));
+    for (const [name, width, height] of [['education-channels-desktop', 1440, 1080], ['education-channels-mobile', 390, 844], ['education-channels-small', 320, 740]]) {
+      await send('Emulation.setDeviceMetricsOverride', {width, height, deviceScaleFactor: 1, mobile: false}, sessionId);
+      await send('Runtime.evaluate', {expression: 'document.querySelector(".education-library").scrollIntoView({block:"start"})'}, sessionId);
+      await wait(300);
+      const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+      await writeFile(resolve(`test-results/${name}.png`), Buffer.from(screenshot.data, 'base64'));
+    }
+    for (const route of ['transactions', 'settings']) {
+      await send('Runtime.evaluate', {expression: `location.hash = "${route}"`}, sessionId);
+      await wait(250);
+      for (const width of [320, 390, 1024, 1440]) {
+        await send('Emulation.setDeviceMetricsOverride', {width, height: width < 760 ? 844 : 1080, deviceScaleFactor: 1, mobile: false}, sessionId);
+        await send('Runtime.evaluate', {expression: 'window.scrollTo(0, 0)'}, sessionId);
+        await wait(150);
+        const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+        await writeFile(resolve(`test-results/${route}-${width}.png`), Buffer.from(screenshot.data, 'base64'));
+        if (route === 'transactions') {
+          await send('Runtime.evaluate', {expression: 'document.querySelector(".statement-history-heading").scrollIntoView({block: "start"})'}, sessionId);
+          const list = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+          await writeFile(resolve(`test-results/statement-list-${width}.png`), Buffer.from(list.data, 'base64'));
+        }
+      }
+    }
+    await send('Runtime.evaluate', {expression: 'location.hash = "transactions"'}, sessionId);
+    await send('Emulation.setDeviceMetricsOverride', {width: 390, height: 844, deviceScaleFactor: 1, mobile: false}, sessionId);
+    await wait(200);
+    await send('Runtime.evaluate', {expression: 'window.scrollTo(0, 0); document.querySelector("#toggle-transaction-filters").click()'}, sessionId);
+    const statementFilters = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+    await writeFile(resolve('test-results/statement-filters-mobile.png'), Buffer.from(statementFilters.data, 'base64'));
+    await send('Runtime.evaluate', {expression: 'document.querySelector("#toggle-transaction-filters").click(); document.querySelector(".statement-entry").click()'}, sessionId);
+    const statementDetails = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+    await writeFile(resolve('test-results/statement-details-mobile.png'), Buffer.from(statementDetails.data, 'base64'));
+    await send('Runtime.evaluate', {expression: 'document.querySelector(".statement-detail-modal .modal-footer [data-close]").click(); document.documentElement.dataset.theme = "light"; document.querySelector(".statement-history-heading").scrollIntoView({block: "start"})'}, sessionId);
+    const statementLight = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+    await writeFile(resolve('test-results/statement-list-light.png'), Buffer.from(statementLight.data, 'base64'));
+    await send('Runtime.evaluate', {expression: 'document.documentElement.dataset.theme = "dark"'}, sessionId);
+    for (const [route, selector] of [['transactions', '[data-new="expense"]'], ['goals', '[data-new-goal]'], ['bills', '[data-new-recurring="bill"][data-group="essential"]']]) {
+      await send('Runtime.evaluate', {expression: `location.hash = "${route}"`}, sessionId);
+      await wait(200);
+      for (const width of [320, 1440]) {
+        await send('Emulation.setDeviceMetricsOverride', {width, height: width < 760 ? 844 : 1080, deviceScaleFactor: 1, mobile: false}, sessionId);
+        await send('Runtime.evaluate', {expression: `document.querySelector('${selector}').click()`}, sessionId);
+        await wait(150);
+        const screenshot = await send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: false}, sessionId);
+        await writeFile(resolve(`test-results/${route}-modal-${width}.png`), Buffer.from(screenshot.data, 'base64'));
+        await send('Runtime.evaluate', {expression: 'document.querySelector("dialog[open] [data-close]").click()'}, sessionId);
+      }
+    }
     await send('Target.closeTarget', {targetId});
   }
   await send('Browser.close');
